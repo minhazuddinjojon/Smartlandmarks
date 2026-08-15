@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark-theme overrides. Status hues are lightened to keep contrast on dark cards. -->
+    <color name="background">#101410</color>
+    <color name="surface">#1A1F1A</color>
+    <color name="surface_variant">#2A302A</color>
+    <color name="outline">#8C938C</color>
+
+    <color name="text_primary">#E2E5E0</color>
+    <color name="text_secondary">#BFC5BD</color>
+
+    <color name="status_queued">#FFCA28</color>
+    <color name="status_pending">#64B5F6</color>
+    <color name="status_done">#81C784</color>
+    <color name="status_failed">#EF9A9A</color>
+
+    <color name="offline_banner">#4E342E</color>
+</resources>

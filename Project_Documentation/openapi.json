@@ -1,0 +1,522 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "CSE 489 — Smart Geo-Tagged Landmarks API",
+    "version": "5.0.0",
+    "description": "Backend API for the CSE 489 Lab Exam (\"Smart Geo-Tagged Landmarks\").\nThis is the **only** backend you're allowed to use — do not build or\nmodify your own.\n\n## Authentication\n\nEvery request must include your assigned student key as a `key` query\nparameter, e.g. `?action=get_landmarks&key=YOUR_KEY`. Keys are\nvalidated against the current semester's roster. If your key is\nmissing, mistyped, or belongs to a previous semester, **every**\nendpoint returns:\n\n```\nHTTP 403\n{\"error\": \"invalid_or_expired_key\"}\n```\n\n## Visiting a landmark is asynchronous\n\n`visit_landmark` does not return the distance immediately. It queues\nthe visit and returns a `job_id`. You must poll `get_job_status`\nuntil the job's `status` becomes `done` (expect a short delay, a few\nseconds, before it resolves). Your Android app is required to do this\npolling with WorkManager (or an equivalent background-work API), not\na blocking loop on the UI thread.\n\n## A note on how the paths below are written\n\nThis API is a single script (`api.php`) that routes by an `action`\nquery parameter rather than by REST-style paths. To keep each action\nseparately documented and easy to browse, this spec lists them below\nas `/api.php?action=...` — the physical endpoint is always\n`/api.php`; `action` is just a required query parameter.\n",
+    "contact": {
+      "name": "CSE 489 Faculty"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://labs.anontech.info/cse489/exm3",
+      "description": "Production (all students use this — do not use a personal/local copy)"
+    }
+  ],
+  "security": [
+    {
+      "StudentKey": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "StudentKey": {
+        "type": "apiKey",
+        "in": "query",
+        "name": "key",
+        "description": "Your assigned student key for the current semester, e.g.\n`?key=YOUR_KEY`. Validated against the current semester's roster\non every request.\n"
+      }
+    },
+    "parameters": {
+      "JobIdParam": {
+        "name": "job_id",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        },
+        "description": "The job_id returned by a prior visit_landmark call."
+      }
+    },
+    "schemas": {
+      "Landmark": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 3
+          },
+          "title": {
+            "type": "string",
+            "example": "Saint Martin's Island"
+          },
+          "lat": {
+            "type": "number",
+            "example": 20.6229
+          },
+          "lon": {
+            "type": "number",
+            "example": 92.322
+          },
+          "image": {
+            "type": "string",
+            "description": "Relative path under the server; prefix with the server base URL to load it.",
+            "example": "uploads/1786430640_5629.jpg"
+          },
+          "is_active": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "example": 1
+          },
+          "visit_count": {
+            "type": "integer",
+            "example": 4
+          },
+          "avg_distance": {
+            "type": "number",
+            "example": 812.35
+          },
+          "score": {
+            "type": "number",
+            "description": "Server-computed, activity-based score. Higher is better. The exact formula/weights vary per student key.",
+            "example": 27.8
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "error": "invalid_or_expired_key"
+        }
+      },
+      "VisitJobPending": {
+        "type": "object",
+        "properties": {
+          "job_id": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending"
+            ]
+          }
+        },
+        "example": {
+          "job_id": 42,
+          "status": "pending"
+        }
+      },
+      "VisitJobDone": {
+        "type": "object",
+        "properties": {
+          "job_id": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "done"
+            ]
+          },
+          "distance": {
+            "type": "number",
+            "description": "Distance in meters between the supplied user location and the landmark."
+          }
+        },
+        "example": {
+          "job_id": 42,
+          "status": "done",
+          "distance": 123.45
+        }
+      },
+      "VisitJobFailed": {
+        "type": "object",
+        "properties": {
+          "job_id": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "failed"
+            ]
+          },
+          "error": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "job_id": 42,
+          "status": "failed",
+          "error": "landmark not found"
+        }
+      }
+    },
+    "responses": {
+      "Forbidden": {
+        "description": "Key is missing, unknown, or belongs to a previous semester.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "invalid_or_expired_key"
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "Required fields are missing from the request.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api.php?action=get_landmarks": {
+      "get": {
+        "operationId": "getLandmarks",
+        "summary": "Get Landmarks",
+        "description": "Returns every active (non-deleted) landmark with its server-computed score.",
+        "tags": [
+          "Landmarks"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of active landmarks.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Landmark"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api.php?action=visit_landmark": {
+      "post": {
+        "operationId": "visitLandmark",
+        "summary": "Visit Landmark (async — returns a job to poll)",
+        "description": "Queues a visit for background processing and immediately returns a\n`job_id`. Poll `get_job_status` with that `job_id` until the\nresult is ready — do not expect the distance in this response.\n",
+        "tags": [
+          "Visits"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "landmark_id",
+                  "user_lat",
+                  "user_lon"
+                ],
+                "properties": {
+                  "landmark_id": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "user_lat": {
+                    "type": "number",
+                    "example": 23.7
+                  },
+                  "user_lon": {
+                    "type": "number",
+                    "example": 90.4
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Visit accepted and queued.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitJobPending"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "landmark_id does not exist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "landmark_not_found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api.php?action=get_job_status": {
+      "get": {
+        "operationId": "getJobStatus",
+        "summary": "Get Job Status (poll after Visit Landmark)",
+        "description": "Returns the current state of a visit job. `job_id` is scoped to\nthe `key` that created it — you cannot query another student's\njob.\n",
+        "tags": [
+          "Visits"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/JobIdParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current job state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/VisitJobPending"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VisitJobDone"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VisitJobFailed"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "job_id not found, or belongs to a different key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "job_not_found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api.php?action=create_landmark": {
+      "post": {
+        "operationId": "createLandmark",
+        "summary": "Create Landmark",
+        "description": "**Must be sent as `multipart/form-data`, not raw JSON** — the\nserver reads the image via PHP's `$_FILES`, which is empty for\nJSON bodies. In Retrofit, use `@Multipart`.\n",
+        "tags": [
+          "Landmarks"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "title",
+                  "lat",
+                  "lon"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "Test Landmark"
+                  },
+                  "lat": {
+                    "type": "number",
+                    "example": 23.75
+                  },
+                  "lon": {
+                    "type": "number",
+                    "example": 90.39
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Optional. jpeg/png/webp, max 2MB."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Landmark created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "example": "11"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api.php?action=delete_landmark": {
+      "post": {
+        "operationId": "deleteLandmark",
+        "summary": "Delete Landmark (Soft Delete)",
+        "description": "Hides the landmark from get_landmarks. Reversible via Restore Landmark.",
+        "tags": [
+          "Landmarks"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Landmark soft-deleted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "deleted"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api.php?action=restore_landmark": {
+      "post": {
+        "operationId": "restoreLandmark",
+        "summary": "Restore Landmark",
+        "description": "Undoes a soft delete.",
+        "tags": [
+          "Landmarks"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Landmark restored.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "restored"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Landmarks",
+      "description": "Browsing and managing landmarks."
+    },
+    {
+      "name": "Visits",
+      "description": "The async visit-and-poll flow."
+    }
+  ]
+}

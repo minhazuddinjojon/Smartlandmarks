@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand -->
+    <color name="primary">#1B5E20</color>
+    <color name="primary_dark">#003300</color>
+    <color name="primary_light">#4C8C4A</color>
+    <color name="secondary">#00695C</color>
+    <color name="on_primary">#FFFFFF</color>
+
+    <!-- Surfaces -->
+    <color name="background">#FAFAFA</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_variant">#EEF1EE</color>
+    <color name="outline">#C7CEC7</color>
+
+    <!-- Text -->
+    <color name="text_primary">#1A1C19</color>
+    <color name="text_secondary">#5A5F59</color>
+    <color name="text_on_dark">#FFFFFF</color>
+
+    <!-- Status. Chosen to stay above 4.5:1 contrast against white text. -->
+    <color name="status_queued">#FFB300</color>
+    <color name="status_pending">#1E88E5</color>
+    <color name="status_done">#2E7D32</color>
+    <color name="status_failed">#C62828</color>
+
+    <!-- Score ramp endpoints, mirrored in ScoreColor.kt -->
+    <color name="score_low">#D32F2F</color>
+    <color name="score_mid">#F9A825</color>
+    <color name="score_high">#2E7D32</color>
+
+    <color name="offline_banner">#5D4037</color>
+    <color name="error">#B3261E</color>
+</resources>

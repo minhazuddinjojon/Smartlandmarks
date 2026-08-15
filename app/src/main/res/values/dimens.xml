@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 4dp grid -->
+    <dimen name="space_xs">4dp</dimen>
+    <dimen name="space_sm">8dp</dimen>
+    <dimen name="space_md">16dp</dimen>
+    <dimen name="space_lg">24dp</dimen>
+    <dimen name="space_xl">32dp</dimen>
+
+    <dimen name="corner_radius">12dp</dimen>
+    <dimen name="card_elevation">2dp</dimen>
+
+    <dimen name="list_image_size">72dp</dimen>
+    <dimen name="detail_image_height">180dp</dimen>
+
+    <!-- Accessibility floor for interactive elements -->
+    <dimen name="min_touch_target">48dp</dimen>
+</resources>

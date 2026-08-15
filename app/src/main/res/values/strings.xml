@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Smart Landmarks</string>
+    <string name="app_tagline">Geo-tagged landmarks of Bangladesh</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_map">Map</string>
+    <string name="nav_landmarks">Landmarks</string>
+    <string name="nav_activity">Activity</string>
+    <string name="nav_add">Add</string>
+
+    <!-- Actions -->
+    <string name="action_retry">Retry</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_visit">Record visit</string>
+    <string name="action_open_settings">Open settings</string>
+    <string name="action_use_gps">Use my location</string>
+    <string name="action_pick_image">Choose image</string>
+    <string name="action_remove_image">Remove image</string>
+    <string name="action_add_landmark">Add landmark</string>
+    <string name="action_sort">Sort</string>
+    <string name="action_clear_filter">Clear filter</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="action_locate">My location</string>
+
+    <!-- Titles -->
+    <string name="title_sort_by">Sort by</string>
+    <string name="title_delete_landmark">Delete this landmark?</string>
+    <string name="message_delete_landmark">It will be hidden from the list. This is a soft delete and can be undone from the server.</string>
+    <string name="title_add_landmark">Add a landmark</string>
+    <string name="title_visit_history">Visit history</string>
+
+    <!-- Form labels -->
+    <string name="label_title">Title</string>
+    <string name="label_latitude">Latitude</string>
+    <string name="label_longitude">Longitude</string>
+    <string name="label_image">Image (optional, max 2 MB)</string>
+    <string name="label_min_score">Minimum score</string>
+
+    <!-- Status -->
+    <string name="status_queued">Queued</string>
+    <string name="status_processing">Processing</string>
+    <string name="status_done">Done</string>
+    <string name="status_failed">Failed</string>
+    <string name="syncing">Syncing…</string>
+
+    <!-- Empty / offline -->
+    <string name="offline_message">Offline — showing saved data. Changes sync automatically.</string>
+    <string name="empty_landmarks">No landmarks yet. Pull down to refresh, or add one from the Add tab.</string>
+    <string name="empty_filtered">No landmarks match this filter.</string>
+    <string name="empty_visits">No visits yet. Open a landmark and tap Record visit.</string>
+
+    <!-- Distance states -->
+    <string name="distance_waiting_network">Waiting for a connection…</string>
+    <string name="distance_calculating">Calculating distance on the server…</string>
+    <string name="distance_unavailable">Distance unavailable</string>
+
+    <!-- Errors -->
+    <string name="error_location_permission_denied">Location permission denied. The app can\'t record a visit without it.</string>
+
+    <!-- Formats -->
+    <string name="format_score">Score %1$s</string>
+    <string name="format_visit_count">%1$d visits</string>
+    <string name="format_average_distance">Avg %1$s</string>
+    <string name="format_coordinates">%1$s, %2$s</string>
+    <string name="format_distance_away">%1$s away</string>
+    <string name="format_job_id">Job #%1$d</string>
+    <string name="format_result_count">Showing %1$d of %2$d</string>
+    <string name="format_min_score">Minimum score: %1$.1f</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_landmark_image">Photo of the landmark</string>
+    <string name="cd_app_logo">Smart Landmarks logo</string>
+    <string name="cd_refresh_map">Refresh landmarks</string>
+    <string name="cd_locate_me">Centre the map on my location</string>
+    <string name="cd_remove_image">Remove the selected image</string>
+
+    <plurals name="pending_visits">
+        <item quantity="one">%1$d visit waiting to sync</item>
+        <item quantity="other">%1$d visits waiting to sync</item>
+    </plurals>
+</resources>
